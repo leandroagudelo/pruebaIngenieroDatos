@@ -45,9 +45,11 @@ El comando `pipeline_pg.py load` ejecuta el pipeline en micro-batches usando `ps
 
 ## Configuración adicional
 
-* **Jupyter**: disponible en [http://localhost:8888](http://localhost:8888) con token `pipeline`. Trabaja sobre el directorio `notebooks/` y comparte datos en `/home/jovyan/data`.
-* **pgAdmin**: disponible en [http://localhost:8080](http://localhost:8080). Credenciales por defecto `admin@example.com` / `admin`. El archivo `pgadmin/servers.json` registra el servidor `local-postgres` (host `postgres`).
-* **Variables de entorno**: la aplicación usa `DATABASE_URL` y `PIPELINE_SOURCE_CSV` para definir conexión y origen de datos.
+Las credenciales y parámetros de conexión viven en el archivo `.env` (versionado) y son reutilizados por todos los servicios de Docker Compose. Puedes ajustarlos según tus necesidades antes de ejecutar `make up`.
+
+* **Jupyter**: disponible en [http://localhost:8888](http://localhost:8888) con token `tu_token_seguro`. Trabaja sobre el directorio `notebooks/` y comparte datos en `/home/jovyan/data`.
+* **pgAdmin**: disponible en [http://localhost:8080](http://localhost:8080). Credenciales por defecto `admin@example.com` / `admin123`. El archivo `pgadmin/servers.json` registra el servidor `local-postgres` (host `postgres`).
+* **Variables de entorno**: la aplicación usa `DATABASE_URL` y `PIPELINE_SOURCE_CSV` definidos en `docker-compose.yml`; `DATABASE_URL` se genera con los parámetros `PIPELINE_DB_*` declarados en `.env`.
 
 ## Estructura del repositorio
 
