@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: ./app
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+      PIPELINE_SOURCE_CSV: /opt/pipeline/data/raw/events.csv
+    volumes:
+      - ./app:/opt/pipeline
+      - ./data:/opt/pipeline/data
+    depends_on:
+      - postgres
+
+  jupyter:
+    image: jupyter/minimal-notebook
+    environment:
+      JUPYTER_TOKEN: pipeline
+    ports:
+      - "8888:8888"
+    command: start-notebook.sh --NotebookApp.default_url=/lab/tree/0_START_HERE.ipynb
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./data:/home/jovyan/data
+    depends_on:
+      - postgres
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
