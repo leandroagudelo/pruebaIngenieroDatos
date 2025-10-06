@@ -89,7 +89,13 @@ Las credenciales y parámetros de conexión viven en el archivo `.env` (versiona
 │   ├── pipeline_pg.py
 │   └── requirements.txt
 ├── data/
-│   └── raw/events.csv
+│   └── raw/
+│       ├── 2012-01.csv
+│       ├── 2012-02.csv
+│       ├── 2012-03.csv
+│       ├── 2012-04.csv
+│       ├── 2012-05.csv
+│       └── validation.csv
 ├── docker-compose.yml
 ├── notebooks/
 │   └── 0_START_HERE.ipynb
