@@ -126,7 +126,7 @@ main() {
   run_cmd "Inicializar esquemas" make db-init-schemas
   run_cmd "Migrar datos base" make db-migrate
   run_cmd "Pipeline init" docker compose exec app python pipeline_pg.py init
-  run_cmd "Carga entrenamiento" docker compose exec app python pipeline_pg.py load --data-dir /workspace/lake/raw --pattern "2012-*.csv" --exclude validation.csv --chunk-size auto
+  run_cmd "Carga entrenamiento" docker compose exec app python pipeline_pg.py load --data-dir /workspace/lake/raw --pattern "2012-*.csv" --chunk-size auto
   run_cmd "Check post-entrenamiento" docker compose exec app python pipeline_pg.py check
   run_cmd "Carga validación" docker compose exec app python pipeline_pg.py load --data-dir /workspace/lake/raw --pattern "validation.csv"
   run_cmd "Check final" docker compose exec app python pipeline_pg.py check

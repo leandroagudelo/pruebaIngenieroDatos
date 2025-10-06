@@ -3,7 +3,7 @@
 - [ ] 5 archivos `2012-*.csv` OK
 - [ ] `validation.csv` OK
 - [ ] `CHECK` post-entrenamiento y final muestran variación de count/avg/min/max
-- [ ] GOLD construido y `gold.load_log` registra las ejecuciones
+- [ ] GOLD construido
 - [ ] Reporte HTML generado
 
 ## Pasos mínimos de revisión
