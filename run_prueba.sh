@@ -58,7 +58,7 @@ print_sample() {
 validate_files() {
   step "Validar archivos de entrenamiento"
 
-  local raw_dir="./data/raw"
+  local raw_dir="./lake/raw/year=2012"
   if [ ! -d "$raw_dir" ]; then
     fail "No se encontró el directorio $raw_dir"
   fi
@@ -126,9 +126,9 @@ main() {
   run_cmd "Inicializar esquemas" make db-init-schemas
   run_cmd "Migrar datos base" make db-migrate
   run_cmd "Pipeline init" docker compose exec app python pipeline_pg.py init
-  run_cmd "Carga entrenamiento" docker compose exec app python pipeline_pg.py load --data-dir /workspace/data/raw --pattern "2012-*.csv" --exclude validation.csv --chunk-size auto
+  run_cmd "Carga entrenamiento" docker compose exec app python pipeline_pg.py load --data-dir /workspace/lake/raw --pattern "2012-*.csv" --chunk-size auto
   run_cmd "Check post-entrenamiento" docker compose exec app python pipeline_pg.py check
-  run_cmd "Carga validación" docker compose exec app python pipeline_pg.py load --data-dir /workspace/data/raw --pattern "validation.csv"
+  run_cmd "Carga validación" docker compose exec app python pipeline_pg.py load --data-dir /workspace/lake/raw --pattern "validation.csv"
   run_cmd "Check final" docker compose exec app python pipeline_pg.py check
   run_cmd "Construir GOLD" make gold
   run_cmd "Generar reporte" make report

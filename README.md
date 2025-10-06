@@ -24,10 +24,9 @@ make db-init-schemas # Crea esquemas y tablas (incluye gold.global_stats y gold.
 make db-migrate      # Ingesta los CSV de ./data/raw excepto validation.csv (RAW→SILVER)
 make gold            # Consolida incrementos desde SILVER hacia GOLD
 make report          # Ejecuta verificaciones rápidas (check)
-./run_prueba.sh      # Ejecuta la validación completa y deja trazas en logs/
 ```
 
-Los datos de entrenamiento se encuentran en `data/raw/` y deben respetar el encabezado `timestamp,price,user_id`. Se incluyen cinco archivos `2012-*.csv` para entrenamiento y uno `validation.csv` que se aplica al final para contrastar las métricas. El micro-batch por defecto procesa 5 filas a la vez (configurable con `--chunk-size` o la variable `PIPELINE_BATCH_SIZE`).
+Los datos de entrenamiento se encuentran en `data/raw/` y deben respetar el encabezado `timestamp,price,user_id`. El micro-batch por defecto procesa 5 filas a la vez (configurable con `--chunk-size` o la variable `PIPELINE_BATCH_SIZE`).
 
 Para detener o limpiar el entorno:
 
