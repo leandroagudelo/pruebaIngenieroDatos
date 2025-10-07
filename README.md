@@ -4,25 +4,34 @@ Este proyecto crea un laboratorio de ingeniería de datos ejecutable con Docker 
 
 ## Servicios
 
-| Servicio  | Propósito | Imagen |
-|-----------|-----------|--------|
-| `postgres` | Base de datos Postgres 16 con los esquemas `raw`, `silver` y `gold`. | `postgres:16` |
-| `app` | CLI Python 3.11 para orquestar el pipeline (`pipeline_pg.py`). | `python:3.11-slim` |
-| `jupyter` | Entorno interactivo basado en `jupyter/minimal-notebook` que abre el cuaderno `notebooks/0_START_HERE.ipynb`. | `jupyter/minimal-notebook` |
-| `pgadmin` | Consola administrativa pgAdmin con un servidor preconfigurado (`local-postgres`). | `dpage/pgadmin4` |
+| Servicio   | Propósito                                                                                                     | Imagen                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `postgres` | Base de datos Postgres 16 con los esquemas `raw`, `silver` y `gold`.                                          | `postgres:16`              |
+| `app`      | CLI Python 3.11 para orquestar el pipeline (`pipeline_pg.py`).                                                | `python:3.11-slim`         |
+| `jupyter`  | Entorno interactivo basado en `jupyter/minimal-notebook` que abre el cuaderno `notebooks/0_START_HERE.ipynb`. | `jupyter/minimal-notebook` |
+| `pgadmin`  | Consola administrativa pgAdmin con un servidor preconfigurado (`local-postgres`).                             | `dpage/pgadmin4`           |
 
 ## Requisitos previos
 
-* Docker y Docker Compose plugin (`docker compose`).
-* Make.
+- Docker y Docker Compose plugin (`docker compose`).
+- Make.
 
 ## Puesta en marcha rápida
 
 ```bash
+# 1. Cargue inicial carga todo menos validation.csv, ver estado
 make up              # Construye y levanta los contenedores
 make db-init-schemas # Crea esquemas y tablas (incluye gold.global_stats y gold.load_log)
 make db-migrate      # Ingesta los CSV de ./data/raw excepto validation.csv (RAW→SILVER)
+make check           # Valida los datos ingestado por lotes
+
+# 2. Validación (carga validation.csv), ver cambio de métricas:
+make validation     # Ingesta el CSV de ./data/raw de validation.csv (RAW→SILVER)
+make check
+
+# 3. Actualizar GOLD e imprimir métricas finales:
 make gold            # Consolida incrementos desde SILVER hacia GOLD
+make check
 make report          # Ejecuta verificaciones rápidas (check)
 ```
 
@@ -74,9 +83,9 @@ docker compose exec app python pipeline_pg.py check
 
 Las credenciales y parámetros de conexión viven en el archivo `.env` (versionado) y son reutilizados por todos los servicios de Docker Compose. Puedes ajustarlos según tus necesidades antes de ejecutar `make up`.
 
-* **Jupyter**: disponible en [http://localhost:8888](http://localhost:8888) con token `tu_token_seguro`. Trabaja sobre el directorio `notebooks/` y comparte datos en `/home/jovyan/data`.
-* **pgAdmin**: disponible en [http://localhost:8080](http://localhost:8080). Credenciales por defecto `admin@example.com` / `admin123`. El archivo `pgadmin/servers.json` registra el servidor `local-postgres` (host `postgres`).
-* **Variables de entorno**: la aplicación usa `DATABASE_URL` y `PIPELINE_SOURCE_CSV` definidos en `docker-compose.yml`; `DATABASE_URL` se genera con los parámetros `PIPELINE_DB_*` declarados en `.env`.
+- **Jupyter**: disponible en [http://localhost:8888](http://localhost:8888) con token `tu_token_seguro`. Trabaja sobre el directorio `notebooks/` y comparte datos en `/home/jovyan/data`.
+- **pgAdmin**: disponible en [http://localhost:8080](http://localhost:8080). Credenciales por defecto `admin@example.com` / `admin123`. El archivo `pgadmin/servers.json` registra el servidor `local-postgres` (host `postgres`).
+- **Variables de entorno**: la aplicación usa `DATABASE_URL` y `PIPELINE_SOURCE_CSV` definidos en `docker-compose.yml`; `DATABASE_URL` se genera con los parámetros `PIPELINE_DB_*` declarados en `.env`.
 
 ## Estructura del repositorio
 
