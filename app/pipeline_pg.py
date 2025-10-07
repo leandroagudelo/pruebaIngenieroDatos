@@ -16,7 +16,7 @@ from psycopg2.extras import execute_values
 DEFAULT_DSN = os.getenv(
     "DATABASE_URL", "postgresql://postgres:postgres@postgres:5432/postgres"
 )
-DEFAULT_DATA_DIR = Path(os.getenv("PIPELINE_DATA_DIR", "/workspace/data/raw"))
+DEFAULT_DATA_DIR = Path(os.getenv("PIPELINE_DATA_DIR", "/opt/pipeline/data/raw"))
 DEFAULT_CHUNK_SIZE = int(os.getenv("PIPELINE_BATCH_SIZE", "5"))
 EXPECTED_HEADER = ["timestamp", "price", "user_id"]
 TWO_PLACES = Decimal("0.01")
