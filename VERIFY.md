@@ -2,7 +2,7 @@
 
 - [ ] 5 archivos `2012-*.csv` OK
 - [ ] `validation.csv` OK
-- [ ] `CHECK` post-entrenamiento y final muestran variación de count/avg/min/max
+- [ ] `CHECK` post-cargue inicial y final muestran variación de count/avg/min/max
 - [ ] GOLD construido
 - [ ] Reporte HTML generado
 

@@ -58,7 +58,7 @@ print_sample() {
 validate_files() {
   step "Validar archivos de entrenamiento"
 
-  local raw_dir="./lake/raw/year=2012"
+  local raw_dir="/opt/pipeline/data/raw/"
   if [ ! -d "$raw_dir" ]; then
     fail "No se encontró el directorio $raw_dir"
   fi
