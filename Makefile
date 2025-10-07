@@ -57,3 +57,36 @@ report: check
 
 # 7) DEMO end-to-end: init -> train -> check -> validation -> check -> gold -> check
 demo: up db-init-schemas db-migrate check validation check gold check
+
+# Ruta de salida DENTRO del contenedor (mapea a ./app/report_lotes.html en tu host)
+REPORT_OUT ?= /opt/pipeline/report.html
+
+.PHONY: report open-report demo-lotes open-report-chrome
+
+# Genera el reporte HTML de lotes + sección de validation
+report:
+	$(COMPOSE) run --rm app python report.py --out $(REPORT_OUT)
+	@echo "✔ Reporte generado en: app/$(notdir $(REPORT_OUT))"
+
+# (Opcional) Abrir el reporte (macOS). En Linux usar: xdg-open
+open-report:
+	@if [ -f app/$(notdir $(REPORT_OUT)) ]; then open app/$(notdir $(REPORT_OUT)); else echo "No se encontró app/$(notdir $(REPORT_OUT))"; fi
+
+
+# 🔹 Abrir específicamente en Google Chrome (macOS)
+open-report-chrome:
+	@if [ -f app/$(notdir $(REPORT_OUT)) ]; then open -a "Google Chrome" "app/$(notdir $(REPORT_OUT))"; else echo "No se encontró app/$(notdir $(REPORT_OUT)). Ejecuta 'make report' primero."; fi
+# Flujo completo + reporte:
+#   init -> entrenamiento -> check -> validation -> check -> gold -> check -> reporte
+demo-lotes: up reset-soft db-init-schemas db-migrate check validation check gold check report open-report-chrome
+
+.PHONY: reset-soft wipe
+
+# Limpieza lógica (deja esquemas/tablas, elimina datos y reinicia métricas)
+reset-soft:
+	$(COMPOSE) run --rm app python pipeline_pg.py reset
+
+# Limpieza total (baja y borra volúmenes de Docker: perderás TODO en Postgres/pgAdmin)
+wipe:
+	$(COMPOSE) down -v
+	@echo "Listo. Vuelve a levantar con: make up && make db-init-schemas"

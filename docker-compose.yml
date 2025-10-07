@@ -17,6 +17,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${PIPELINE_DB_USER}:${PIPELINE_DB_PASSWORD}@${PIPELINE_DB_HOST}:${PIPELINE_DB_PORT}/${PIPELINE_DB_NAME}
       PIPELINE_DATA_DIR: /opt/pipeline/data/raw
+      DEFAULT_CHUNK_SIZE: 5
     volumes:
       - ./app:/opt/pipeline
       - ./data:/opt/pipeline/data

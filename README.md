@@ -16,6 +16,42 @@ Este proyecto crea un laboratorio de ingeniería de datos ejecutable con Docker 
 - Docker y Docker Compose plugin (`docker compose`).
 - Make.
 
+## Si quieres ejecutar el proceso super rapido
+
+```bash
+make demo-lotes
+```
+
+## Si se quire eliminar e iniciar de nuevo ejecutar
+
+```bash
+docker compose down --volumes --rmi local --remove-orphans
+docker compose build --no-cache
+docker compose up -d
+```
+
+## Flujo Tipico cuando se quiere reiniciar el proceso
+
+```bash
+# 1 Vaciar datos y métricas
+make reset-soft
+
+# 2 (Opcional) Re-asegurar objetos
+make db-init-schemas
+
+# 3 Ejecutar cargue inicial
+make db-migrate   # RAW->SILVER (excluye validation)
+
+# 4 GOLD
+make gold
+
+# 5 Cargar validation y ver cambios
+make validation
+make gold
+make report   # si quieres el HTML de lotes/validation
+make open-report-chrome
+```
+
 ## Puesta en marcha rápida
 
 ```bash
@@ -24,6 +60,7 @@ make up              # Construye y levanta los contenedores
 make db-init-schemas # Crea esquemas y tablas (incluye gold.global_stats y gold.load_log)
 make db-migrate      # Ingesta los CSV de ./data/raw excepto validation.csv (RAW→SILVER)
 make check           # Valida los datos ingestado por lotes
+make gold
 
 # 2. Validación (carga validation.csv), ver cambio de métricas:
 make validation     # Ingesta el CSV de ./data/raw de validation.csv (RAW→SILVER)
@@ -33,9 +70,10 @@ make check
 make gold            # Consolida incrementos desde SILVER hacia GOLD
 make check
 make report          # Ejecuta verificaciones rápidas (check)
+make open-report-chrome
 ```
 
-Los datos de entrenamiento se encuentran en `data/raw/` y deben respetar el encabezado `timestamp,price,user_id`. El micro-batch por defecto procesa 5 filas a la vez (configurable con `--chunk-size` o la variable `PIPELINE_BATCH_SIZE`).
+Los datos de la prueba se encuentran en `data/raw/` y deben respetar el encabezado `timestamp,price,user_id`. El micro-batch por defecto procesa 5 filas a la vez (configurable con `--chunk-size` o la variable `PIPELINE_BATCH_SIZE`).
 
 Para detener o limpiar el entorno:
 
@@ -46,11 +84,11 @@ make down  # Detiene y elimina volúmenes
 
 ## Arquitectura del pipeline
 
-1. **RAW**: ingesta directa de cada archivo válido en `raw.events_raw`, conservando los valores originales pero con control de duplicados por `(source_file, row_number)`.
+1. **RAW**: ingesta directa de cada archivo válido en `data/raw`, conservando los valores originales pero con control de duplicados por `(source_file, row_number)`.
 2. **SILVER**: normalización tipada en `silver.events`, coercionando nulos o valores inválidos a `0`, almacenando la fecha (`DATE`), el precio (`NUMERIC(18,2)`), el usuario (`NUMERIC(18,0)`) y una columna `dq_status` que marca las filas ajustadas.
 3. **GOLD**: métricas globales incrementales en `gold.global_stats` (conteo total, suma, mínimos/máximos y último `raw_id` procesado) y bitácora de cargas en `gold.load_log`.
 
-El comando `pipeline_pg.py load` orquesta los tres pasos en micro-batches de 5 filas (por defecto), omite `validation.csv` durante el entrenamiento inicial y actualiza las métricas sin reescanear el histórico completo. Tras cada ejecución imprime `count/avg/min/max` y, en GOLD, las variaciones respecto al estado previo.
+El comando `pipeline_pg.py load` orquesta los tres pasos en micro-batches de 5 filas (por defecto), omite `validation.csv` durante el cargue inicial y actualiza las métricas sin reescanear el histórico completo. Tras cada ejecución imprime `count/avg/min/max` y, en GOLD, las variaciones respecto al estado previo.
 
 ### CLI del pipeline
 
@@ -60,7 +98,7 @@ Además del modo orquestado (`load`), el script expone comandos específicos par
 # Inicialización
 docker compose exec app python pipeline_pg.py init
 
-# Entrenamiento (RAW→SILVER) desde ./data/raw excluyendo validation.csv
+# Cargue inicial (RAW→SILVER) desde ./data/raw excluyendo validation.csv
 docker compose exec app python pipeline_pg.py load \
   --data-dir /workspace/data/raw --exclude validation.csv --stage silver --chunk-size 5
 
@@ -81,9 +119,9 @@ docker compose exec app python pipeline_pg.py check
 
 ## Configuración adicional
 
-Las credenciales y parámetros de conexión viven en el archivo `.env` (versionado) y son reutilizados por todos los servicios de Docker Compose. Puedes ajustarlos según tus necesidades antes de ejecutar `make up`.
+Las credenciales y parámetros de conexión viven en el archivo `.env` (versionado) y son reutilizados por todos los servicios de Docker Compose.`make up`.
 
-- **Jupyter**: disponible en [http://localhost:8888](http://localhost:8888) con token `tu_token_seguro`. Trabaja sobre el directorio `notebooks/` y comparte datos en `/home/jovyan/data`.
+- **Jupyter**: disponible en [http://localhost:8888](http://localhost:8888) con token `tu_token_seguro`. En caso de requerir se puede trabajar sobre el directorio `notebooks/` y comparte datos en `/home/jovyan/data`.
 - **pgAdmin**: disponible en [http://localhost:8080](http://localhost:8080). Credenciales por defecto `admin@example.com` / `admin123`. El archivo `pgadmin/servers.json` registra el servidor `local-postgres` (host `postgres`).
 - **Variables de entorno**: la aplicación usa `DATABASE_URL` y `PIPELINE_SOURCE_CSV` definidos en `docker-compose.yml`; `DATABASE_URL` se genera con los parámetros `PIPELINE_DB_*` declarados en `.env`.
 

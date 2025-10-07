@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import List, Sequence
 
 import psycopg2
+from psycopg2 import sql
 from psycopg2.extras import execute_values
 
 DEFAULT_DSN = os.getenv(
@@ -584,6 +585,75 @@ def run_check(dsn: str) -> None:
     print("[DB-AGG] GOLD global stats")
     print_metrics("  ↳ Métricas", summary)
 
+def run_reset(dsn: str) -> None:
+    """Borra datos de RAW, SILVER y GOLD; reinicia métricas y contadores."""
+    # Lista de tablas candidatas a truncar (algunas pueden no existir en tu despliegue)
+    candidate_tables = [
+        ("gold", "metrics_user_daily"),
+        ("gold", "metrics_daily"),
+        ("gold", "load_log"),
+        ("silver", "events"),
+        ("raw", "events_raw"),
+    ]
+
+    with get_connection(dsn) as conn:
+        with conn.cursor() as cur:
+            # 1) Filtrar solo las que existen
+            existing = []
+            for sch, tbl in candidate_tables:
+                cur.execute("SELECT to_regclass(%s)", (f"{sch}.{tbl}",))
+                if cur.fetchone()[0] is not None:
+                    existing.append((sch, tbl))
+
+            # 2) TRUNCATE de todas las existentes en una sola sentencia
+            if existing:
+                objs = [
+                    sql.SQL("{}.{}").format(sql.Identifier(sch), sql.Identifier(tbl))
+                    for sch, tbl in existing
+                ]
+                cur.execute(
+                    sql.SQL("TRUNCATE TABLE {} RESTART IDENTITY CASCADE").format(
+                        sql.SQL(", ").join(objs)
+                    )
+                )
+
+            # 3) Asegurar e inicializar gold.global_stats
+            #    (si no existe, créala; si existe, reiníciala)
+            cur.execute("SELECT to_regclass('gold.global_stats')")
+            if cur.fetchone()[0] is None:
+                # Crea la tabla de stats si falta
+                cur.execute("""
+                    CREATE SCHEMA IF NOT EXISTS gold;
+                    CREATE TABLE gold.global_stats (
+                      id SMALLINT PRIMARY KEY CHECK (id = 1),
+                      total_count NUMERIC(38,0) NOT NULL DEFAULT 0,
+                      total_sum   NUMERIC(38,2) NOT NULL DEFAULT 0,
+                      min_price   NUMERIC(18,2),
+                      max_price   NUMERIC(18,2),
+                      last_silver_id BIGINT NOT NULL DEFAULT 0,
+                      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    );
+                """)
+
+            # Insertar/Resetear la fila id=1
+            cur.execute("""
+                INSERT INTO gold.global_stats
+                    (id, total_count, total_sum, min_price, max_price, last_silver_id, updated_at)
+                VALUES (1, 0, 0, NULL, NULL, 0, NOW())
+                ON CONFLICT (id) DO UPDATE SET
+                    total_count = 0,
+                    total_sum   = 0,
+                    min_price   = NULL,
+                    max_price   = NULL,
+                    last_silver_id = 0,
+                    updated_at  = NOW();
+            """)
+
+        conn.commit()
+
+    print("[RESET] Datos borrados y métricas reiniciadas.")
+
+
 
 def run_load(
     dsn: str,
@@ -706,6 +776,10 @@ def build_parser() -> argparse.ArgumentParser:
         "check", help="Run lightweight checks on RAW/SILVER/GOLD layer counts."
     )
 
+    subparsers.add_parser(
+    "reset", help="Eliminar todos los datos y reiniciar métricas (RAW, SILVER, GOLD)."  
+    )
+
     return parser
 
 
@@ -738,6 +812,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         run_silver_to_gold(args.dsn, chunk_size=resolve_chunk_size(args.chunk_size))
     elif args.command == "check":
         run_check(args.dsn)
+    elif args.command == "reset":
+        run_reset(args.dsn)
     else:
         parser.error(f"Unknown command {args.command}")
 

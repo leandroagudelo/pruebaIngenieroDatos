@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Reporte de Cargas por Lote y Validación</title>
+<style>
+body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 24px; }
+h1, h2, h3 { margin: 0.6rem 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
+th { background: #f5f5f5; text-align: left; }
+tr:nth-child(even) { background: #fafafa; }
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; background:#eee; font-size:12px; }
+.small { color:#666; font-size:12px; }
+.section { margin: 1.5rem 0; }
+code { background:#f3f3f3; padding:2px 6px; border-radius:4px; }
+</style>
+</head>
+<body>
+<h1>Reporte de Cargas por Lote y Validación</h1>
+<p class="small">Generado: 2025-10-07T16:32:56</p>
+
+<div class="section"><h2>Cargas por lote (gold.load_log)</h2>
+<table>
+<tr><th>Capa</th><th>Archivo</th><th>Lote</th><th>Registros</th><th>Min</th><th>Avg</th><th>Max</th><th>Chunk</th><th>Estado</th><th>Detalles</th></tr>
+<tr><td>raw</td><td>2012-1.csv</td><td>1</td><td>22</td><td>0.00</td><td>54.23</td><td>97.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
+<tr><td>raw</td><td>2012-2.csv</td><td>1</td><td>29</td><td>10.00</td><td>54.83</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
+<tr><td>raw</td><td>2012-3.csv</td><td>1</td><td>31</td><td>12.00</td><td>59.68</td><td>99.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
+<tr><td>raw</td><td>2012-4.csv</td><td>1</td><td>30</td><td>0.00</td><td>53.57</td><td>97.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
+<tr><td>raw</td><td>2012-5.csv</td><td>1</td><td>31</td><td>13.00</td><td>58.26</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>1</td><td>143</td><td>0.00</td><td>56.27</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>Filas con coerción: 143</td></tr>
+<tr><td>raw</td><td>validation.csv</td><td>1</td><td>8</td><td>11.00</td><td>41.75</td><td>92.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>2</td><td>8</td><td>11.00</td><td>41.75</td><td>92.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>Filas con coerción: 8</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>1</td><td>151</td><td>0.00</td><td>55.50</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
+</table></div>
+<div class="section"><h2>Validación</h2>
+<p>Comparación de métricas al cargar <code>validation.csv</code>.</p>
+<table>
+<tr><th>Conjunto</th><th>Count</th><th>Avg</th><th>Min</th><th>Max</th></tr>
+<tr><td><b>Antes (sin validation)</b></td><td>143</td><td>56.27</td><td>0.00</td><td>100.00</td></tr>
+<tr><td><b>Solo validation</b></td><td>8</td><td>41.75</td><td>11.00</td><td>92.00</td></tr>
+<tr><td><b>Después (total)</b></td><td>151</td><td>55.50</td><td>0.00</td><td>100.00</td></tr>
+</table>
+<div class='section'><h3>Deltas (Después - Antes)</h3>
+<table>
+<tr><th>Δcount</th><th>Δavg</th><th>Δmin</th><th>Δmax</th></tr>
+<tr><td>8</td><td>-0.77</td><td>0.00</td><td>0.00</td></tr>
+</table></div>
+</div>
+</body></html>
