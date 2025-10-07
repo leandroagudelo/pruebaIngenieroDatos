@@ -1,28 +1,52 @@
 # Pipeline CSV→Postgres RAW→SILVER→GOLD
 
-Este proyecto crea un laboratorio de ingeniería de datos ejecutable con Docker Compose que implementa una arquitectura RAW→SILVER→GOLD alimentada desde archivos CSV y almacenada en Postgres 16.
+Este proyecto crea un laboratorio de ingeniería de datos ejecutable con **Docker Compose** que implementa una arquitectura **RAW → SILVER → GOLD** alimentada desde archivos **CSV** y almacenada en **Postgres 16**.  
+Incluye micro-lotes configurables, bitácora de cargas y un **reporte HTML** para auditoría.
 
-## Servicios
+---
 
-| Servicio   | Propósito                                                                                                     | Imagen                     |
-| ---------- | ------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `postgres` | Base de datos Postgres 16 con los esquemas `raw`, `silver` y `gold`.                                          | `postgres:16`              |
-| `app`      | CLI Python 3.11 para orquestar el pipeline (`pipeline_pg.py`).                                                | `python:3.11-slim`         |
-| `jupyter`  | Entorno interactivo basado en `jupyter/minimal-notebook` que abre el cuaderno `notebooks/0_START_HERE.ipynb`. | `jupyter/minimal-notebook` |
-| `pgadmin`  | Consola administrativa pgAdmin con un servidor preconfigurado (`local-postgres`).                             | `dpage/pgadmin4`           |
+## 🧩 Servicios
 
-## Requisitos previos
+| Servicio   | Propósito                                                                             | Imagen                     |
+| ---------- | ------------------------------------------------------------------------------------- | -------------------------- |
+| `postgres` | Base de datos Postgres 16 con los esquemas `raw`, `silver` y `gold`.                  | `postgres:16`              |
+| `app`      | CLI Python 3.11 para orquestar el pipeline (`app/pipeline_pg.py`).                    | `python:3.11-slim`         |
+| `jupyter`  | Entorno interactivo `jupyter/minimal-notebook` (abre `notebooks/0_START_HERE.ipynb`). | `jupyter/minimal-notebook` |
+| `pgadmin`  | Consola pgAdmin con servidor preconfigurado (`local-postgres`) (opcional).            | `dpage/pgadmin4`           |
 
-- Docker y Docker Compose plugin (`docker compose`).
-- Make.
+> Montajes clave del `app`:  
+> `./app → /opt/pipeline` y `./data → /opt/pipeline/data`.  
+> Por defecto, los CSV se buscan en **`/opt/pipeline/data/raw`**.
 
-## Si quieres ejecutar el proceso super rapido
+---
+
+## ✅ Requisitos previos
+
+- Docker + Docker Compose (plugin `docker compose`)
+- `make`
+
+---
+
+## ⚡ Ejecución “súper rápida”
 
 ```bash
 make demo-lotes
 ```
 
-## Si se quire eliminar e iniciar de nuevo ejecutar
+Ejecuta fin-a-fin: init → cargue inicial → check → validation → check → gold → check → reporte HTML.
+
+---
+
+## 🔁 Reiniciar desde cero (dos opciones)
+
+### Opción 1 — Reset lógico (mantiene contenedores/volúmenes)
+
+```bash
+make reset-soft         # Vacía RAW/SILVER/GOLD y reinicia métricas
+make db-init-schemas    # (opcional) recrea/asegura objetos
+```
+
+### Opción 2 — Reset total (borra volúmenes Docker)
 
 ```bash
 docker compose down --volumes --rmi local --remove-orphans
@@ -30,102 +54,208 @@ docker compose build --no-cache
 docker compose up -d
 ```
 
-## Flujo Tipico cuando se quiere reiniciar el proceso
+---
+
+## ▶️ Puesta en marcha típica
 
 ```bash
-# 1 Vaciar datos y métricas
-make reset-soft
-
-# 2 (Opcional) Re-asegurar objetos
+# 1) Arranque + objetos
+make up
 make db-init-schemas
 
-# 3 Ejecutar cargue inicial
-make db-migrate   # RAW->SILVER (excluye validation)
+# 2) Entrenamiento (carga todo menos validation.csv), ver estado
+make db-migrate        # RAW→SILVER (excluye validation.csv)
+make gold              # SILVER→GOLD (incremental)
+make check
 
-# 4 GOLD
-make gold
+# 3) Validación (carga validation.csv) y ver cambios
+make validation        # RAW→SILVER (solo validation.csv)
+make gold              # Incrementa GOLD con lo nuevo
+make check
 
-# 5 Cargar validation y ver cambios
-make validation
-make gold
-make report   # si quieres el HTML de lotes/validation
+# 4) Reporte HTML
+make report-lotes
 make open-report-chrome
 ```
 
-## Puesta en marcha rápida
+> Para detener/limpiar:
 
 ```bash
-# 1. Cargue inicial carga todo menos validation.csv, ver estado
-make up              # Construye y levanta los contenedores
-make db-init-schemas # Crea esquemas y tablas (incluye gold.global_stats y gold.load_log)
-make db-migrate      # Ingesta los CSV de ./data/raw excepto validation.csv (RAW→SILVER)
-make check           # Valida los datos ingestado por lotes
-make gold
-
-# 2. Validación (carga validation.csv), ver cambio de métricas:
-make validation     # Ingesta el CSV de ./data/raw de validation.csv (RAW→SILVER)
-make check
-
-# 3. Actualizar GOLD e imprimir métricas finales:
-make gold            # Consolida incrementos desde SILVER hacia GOLD
-make check
-make report          # Ejecuta verificaciones rápidas (check)
-make open-report-chrome
+make stop   # Detiene servicios
+make down   # Detiene y elimina volúmenes
 ```
 
-Los datos de la prueba se encuentran en `data/raw/` y deben respetar el encabezado `timestamp,price,user_id`. El micro-batch por defecto procesa 5 filas a la vez (configurable con `--chunk-size` o la variable `PIPELINE_BATCH_SIZE`).
+---
 
-Para detener o limpiar el entorno:
+## 🧱 Arquitectura del pipeline
 
-```bash
-make stop  # Detiene los servicios
-make down  # Detiene y elimina volúmenes
+1. **RAW** (`raw.events_raw`)  
+   Ingesta directa **sin transformación**. Guarda texto crudo con control de duplicados por `(source_file, row_number)` e idempotencia.
+
+2. **SILVER** (`silver.events`)  
+   Normaliza y tipa:
+
+   - `timestamp → DATE` (si inválido → `1970-01-01`)
+   - `price → NUMERIC(18,2)` (inválido/nulo → `0.00`)
+   - `user_id → NUMERIC(18,0)` (inválido/nulo → `0`)  
+     Marca `dq_status = 'OK' | 'COERCED'`.
+
+3. **GOLD** (`gold.global_stats`, `gold.load_log`)  
+   Mantiene **métricas incrementales** (no reescanea histórico):
+   - `total_count`, `total_sum`, `min_price`, `max_price`, `last_silver_id`
+   - El **promedio** se deriva como `total_sum / total_count`.  
+     **Bitácora de cargas**: `gold.load_log` registra cada **lote** (`status='BATCH'`) y los **resúmenes** de fase/archivo.
+
+```
+CSV (/opt/pipeline/data/raw/*.csv)
+        │  (validación de encabezado y micro-lotes)
+        ▼
+RAW     raw.events_raw
+        │  (coerciones/validación → SILVER por lotes)
+        ▼
+SILVER  silver.events
+        │  (agregación incremental por lotes → GOLD)
+        ▼
+GOLD    gold.global_stats  +  gold.load_log
 ```
 
-## Arquitectura del pipeline
+---
 
-1. **RAW**: ingesta directa de cada archivo válido en `data/raw`, conservando los valores originales pero con control de duplicados por `(source_file, row_number)`.
-2. **SILVER**: normalización tipada en `silver.events`, coercionando nulos o valores inválidos a `0`, almacenando la fecha (`DATE`), el precio (`NUMERIC(18,2)`), el usuario (`NUMERIC(18,0)`) y una columna `dq_status` que marca las filas ajustadas.
-3. **GOLD**: métricas globales incrementales en `gold.global_stats` (conteo total, suma, mínimos/máximos y último `raw_id` procesado) y bitácora de cargas en `gold.load_log`.
+## 🗃️ Esquema de BD (resumen)
 
-El comando `pipeline_pg.py load` orquesta los tres pasos en micro-batches de 5 filas (por defecto), omite `validation.csv` durante el cargue inicial y actualiza las métricas sin reescanear el histórico completo. Tras cada ejecución imprime `count/avg/min/max` y, en GOLD, las variaciones respecto al estado previo.
+### `raw.events_raw`
 
-### CLI del pipeline
+- `id BIGSERIAL PK`, `source_file TEXT`, `row_number INT` (UNIQUE con `source_file`)
+- `timestamp_raw TEXT`, `price_raw TEXT`, `user_id_raw TEXT`, `loaded_at TIMESTAMPTZ`
 
-Además del modo orquestado (`load`), el script expone comandos específicos para controlar cada capa:
+### `silver.events`
+
+- `raw_id BIGINT PK` (del registro en RAW)
+- `event_date DATE`, `price NUMERIC(18,2)`, `user_id NUMERIC(18,0)`
+- `dq_status TEXT`, `source_file TEXT`, `loaded_at TIMESTAMPTZ`
+
+### `gold.global_stats`
+
+- `id SMALLINT = 1`
+- `total_count NUMERIC(38,0)`, `total_sum NUMERIC(38,2)`
+- `min_price NUMERIC(18,2)`, `max_price NUMERIC(18,2)`
+- `last_silver_id BIGINT`, `updated_at TIMESTAMPTZ`
+
+### `gold.load_log`
+
+- `layer TEXT` (`raw|silver|gold`)
+- `file_name TEXT`
+- `records BIGINT`
+- `min_price NUMERIC(18,2)`, `avg_price NUMERIC(18,2)`, `max_price NUMERIC(18,2)`
+- `chunk_size INT`
+- `status TEXT` (`BATCH`, `SUCCESS`, `NO_NEW_ROWS`, `SKIPPED_BAD_HEADER`, …)
+- `details TEXT` (p.ej. `batch=3`, `file_summary`, `phase_summary`, `coerced=12`)
+
+---
+
+## ⚙️ Micro-lotes y bitácora
+
+- Tamaño de lote por defecto: **5** (configurable con `--chunk-size` o `PIPELINE_BATCH_SIZE`).
+- Las 3 fases (**RAW**, **SILVER**, **GOLD**) procesan en `LIMIT chunk_size` y registran:
+  - Una fila por **lote** (`status='BATCH'`, `details='batch=N'`).
+  - Una fila de **resumen** por archivo/fase (`status='SUCCESS'|...`, `details='file_summary|phase_summary'`).
+
+**Verificación rápida de lotes (SQL):**
+
+```sql
+SELECT layer, file_name, records, chunk_size, status, details
+FROM gold.load_log
+ORDER BY ctid;  -- orden aproximado de inserción
+```
+
+---
+
+## 🖥️ CLI del pipeline (`app/pipeline_pg.py`)
 
 ```bash
-# Inicialización
+# Inicialización (esquemas/tablas + fila id=1 en gold.global_stats)
 docker compose exec app python pipeline_pg.py init
 
-# Cargue inicial (RAW→SILVER) desde ./data/raw excluyendo validation.csv
+# Orquestado (RAW→SILVER→GOLD) — por defecto exclude validation.csv si pattern=*.csv
 docker compose exec app python pipeline_pg.py load \
-  --data-dir /workspace/data/raw --exclude validation.csv --stage silver --chunk-size 5
+  --data-dir /opt/pipeline/data/raw \
+  --stage all \
+  --chunk-size 5
 
-# Validación (vuelve a ejecutar RAW→SILVER→GOLD solo con validation.csv)
-docker compose exec app python pipeline_pg.py load \
-  --data-dir /workspace/data/raw --pattern "validation.csv" --chunk-size 5
+# Solo RAW (sin transformaciones)
+docker compose exec app python pipeline_pg.py load-raw \
+  --data-dir /opt/pipeline/data/raw \
+  --exclude validation.csv
 
-# Comandos granulares
-docker compose exec app python pipeline_pg.py load-raw --data-dir /workspace/data/raw --exclude validation.csv
+# Solo RAW→SILVER (entrenamiento)
 docker compose exec app python pipeline_pg.py raw-to-silver --chunk-size 5
+
+# Solo SILVER→GOLD (incremental)
 docker compose exec app python pipeline_pg.py silver-to-gold --chunk-size 5
 
-# Reporte de estado
+# Estado rápido
 docker compose exec app python pipeline_pg.py check
+
+# Reset lógico de datos/métricas
+docker compose exec app python pipeline_pg.py reset
 ```
 
-`gold.load_log` registra cada ejecución con el archivo procesado, filas afectadas, métricas (min/avg/max), chunk utilizado y estado (`SUCCESS`, `NO_NEW_ROWS`, etc.), útil para auditorías posteriores.
+> **Encabezado obligatorio** en CSV: `timestamp,price,user_id`.  
+> Archivos sin esa cabecera se **omiten** y se registran en `gold.load_log` como `SKIPPED_BAD_HEADER`.  
+> **Ruta por defecto**: `/opt/pipeline/data/raw` (`PIPELINE_DATA_DIR`).
 
-## Configuración adicional
+---
 
-Las credenciales y parámetros de conexión viven en el archivo `.env` (versionado) y son reutilizados por todos los servicios de Docker Compose.`make up`.
+## 🧰 Makefile (targets útiles)
 
-- **Jupyter**: disponible en [http://localhost:8888](http://localhost:8888) con token `tu_token_seguro`. En caso de requerir se puede trabajar sobre el directorio `notebooks/` y comparte datos en `/home/jovyan/data`.
-- **pgAdmin**: disponible en [http://localhost:8080](http://localhost:8080). Credenciales por defecto `admin@example.com` / `admin123`. El archivo `pgadmin/servers.json` registra el servidor `local-postgres` (host `postgres`).
-- **Variables de entorno**: la aplicación usa `DATABASE_URL` y `PIPELINE_SOURCE_CSV` definidos en `docker-compose.yml`; `DATABASE_URL` se genera con los parámetros `PIPELINE_DB_*` declarados en `.env`.
+- `up` — build & up de servicios
+- `stop` / `down` — detener / detener + borrar volúmenes
+- `db-init-schemas` — `pipeline_pg.py init`
+- `db-migrate` — entrenamiento RAW→SILVER (excluye `validation.csv`)
+- `validation` — carga `validation.csv` RAW→SILVER
+- `gold` — agrega incrementales a GOLD
+- `check` — estado actual
+- `report-lotes` — **genera HTML** `app/report_lotes.html`
+- `open-report-chrome` — abre el HTML en Google Chrome (macOS)
+- `reset-soft` — vacía datos y reinicia métricas
+- `wipe` — borra volúmenes (reset total)
+- `demo-lotes` — encadena todo fin-a-fin + reporte
 
-## Estructura del repositorio
+---
+
+## 📊 Reporte HTML de lotes y validación
+
+El script `app/report_lotes.py` produce **`app/report_lotes.html`** con:
+
+- **Cargas por lote** desde `gold.load_log`: Capa, Archivo, **Lote**, Registros, Min/Avg/Max, Chunk, Estado, Detalles.
+- **Sección VALIDATION**:
+  - **Antes** (excluye `validation.csv`)
+  - **Solo validation**
+  - **Después** (total)
+  - **Deltas** (Después – Antes)
+
+**Ejemplo:**
+
+```bash
+make report-lotes
+make open-report-chrome
+```
+
+---
+
+## 🔧 Configuración y variables
+
+- **BD (DSN)**: `DATABASE_URL` (p.ej. `postgresql://postgres:postgres@postgres:5432/postgres`)
+- **Datos**: `PIPELINE_DATA_DIR` (por defecto `/opt/pipeline/data/raw`)
+- **Micro-lote**: `PIPELINE_BATCH_SIZE` (por defecto `5`)
+- **Jupyter**: `JUPYTER_TOKEN`
+- **pgAdmin**: `PGADMIN_DEFAULT_EMAIL`, `PGADMIN_DEFAULT_PASSWORD`
+
+> Los CSV de la prueba deben estar en `data/raw/` y respetar el encabezado requerido.
+
+---
+
+## 📁 Estructura del repositorio
 
 ```
 .
@@ -134,6 +264,7 @@ Las credenciales y parámetros de conexión viven en el archivo `.env` (versiona
 ├── app/
 │   ├── Dockerfile
 │   ├── pipeline_pg.py
+│   ├── report_lotes.py
 │   └── requirements.txt
 ├── data/
 │   └── raw/
@@ -150,4 +281,28 @@ Las credenciales y parámetros de conexión viven en el archivo `.env` (versiona
     └── servers.json
 ```
 
-¡Listo para ejecutar y extender! Ajusta el CSV de entrada o incorpora transformaciones adicionales según tus necesidades.
+---
+
+## 🛠️ Troubleshooting
+
+- **Auth fallida a Postgres**  
+  Asegura que `DATABASE_URL` coincide con tus `POSTGRES_*` y que el servicio `postgres` está arriba.
+
+- **“No se encuentra /opt/pipeline/data/raw”**  
+  Verifica el montaje en `docker-compose.yml`:  
+  `app.volumes: - ./data:/opt/pipeline/data` y que los archivos existen.
+
+- **CSV omitido**  
+  Verifica la cabecera exacta: `timestamp,price,user_id`.
+
+- **No veo lotes en el log**  
+  Ejecuta con `--chunk-size 5` y consulta:
+  ```sql
+  SELECT layer, file_name, records, chunk_size, status, details
+  FROM gold.load_log
+  ORDER BY ctid;
+  ```
+
+---
+
+**¡Listo!** Con esto tienes una ejecución reproducible, una arquitectura clara y evidencias de micro-lotes y validación, todo con pocos comandos.

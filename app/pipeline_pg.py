@@ -286,8 +286,8 @@ def run_load_raw(
             for file_path in files:
                 print(f"[RAW] Procesando {file_path.name}")
                 with open(file_path, newline="", encoding="utf-8") as handle:
-                    reader = csv.reader(handle)
-                    header = next(reader, None)
+                    iter_rows = csv.reader(handle)
+                    header = next(iter_rows, None)
                     if header != EXPECTED_HEADER:
                         message = (
                             f"Encabezado inesperado ({header}); se omite el archivo {file_path.name}."
@@ -310,13 +310,16 @@ def run_load_raw(
                     row_number = 0
                     pending_prices: dict[int, Decimal] = {}
                     file_inserted_prices: List[Decimal] = []
-                    for row in reader:
+                    batch_no = 0  # para numerar los lotes
+
+                    for row in iter_rows:
                         row_number += 1
                         if len(row) != 3:
                             print(
                                 f"  → Fila {row_number} ignorada (se esperaban 3 columnas y se recibieron {len(row)})."
                             )
                             continue
+
                         timestamp_raw, price_raw, user_id_raw = row
                         batch.append(
                             (
@@ -327,32 +330,73 @@ def run_load_raw(
                                 user_id_raw,
                             )
                         )
+
+                        # guardar el precio ya coaccionado para métricas del lote
                         coerced_price, _ = coerce_price(price_raw)
                         pending_prices[row_number] = coerced_price
+
                         if len(batch) >= chunk_size:
+                            batch_no += 1
                             inserted = insert_raw_chunk(cur, batch)
+                            chunk_prices: List[Decimal] = []
                             for _, inserted_row_number in inserted:
                                 price_value = pending_prices[inserted_row_number]
                                 file_inserted_prices.append(price_value)
                                 all_inserted_prices.append(price_value)
+                                chunk_prices.append(price_value)
                             total_inserted += len(inserted)
+
+                            if inserted:
+                                record_load_log(
+                                    cur,
+                                    layer="raw",
+                                    file_name=file_path.name,
+                                    records=len(inserted),
+                                    prices=chunk_prices,
+                                    chunk_size=chunk_size,
+                                    status="BATCH",
+                                    details=f"batch={batch_no}",
+                                )
+                                print(f"[RAW] {file_path.name} batch#{batch_no} inserted={len(inserted)}")
+                                conn.commit()
+
                             batch = []
+
+                    # flush final si quedaron filas
                     if batch:
+                        batch_no += 1
                         inserted = insert_raw_chunk(cur, batch)
+                        chunk_prices: List[Decimal] = []
                         for _, inserted_row_number in inserted:
                             price_value = pending_prices[inserted_row_number]
                             file_inserted_prices.append(price_value)
                             all_inserted_prices.append(price_value)
+                            chunk_prices.append(price_value)
                         total_inserted += len(inserted)
+
+                        if inserted:
+                            record_load_log(
+                                cur,
+                                layer="raw",
+                                file_name=file_path.name,
+                                records=len(inserted),
+                                prices=chunk_prices,
+                                chunk_size=chunk_size,
+                                status="BATCH",
+                                details=f"batch={batch_no}",
+                            )
+                            print(f"[RAW] {file_path.name} batch#{batch_no} inserted={len(inserted)}")
+                            conn.commit()
+
+                    # resumen por archivo
                     if file_inserted_prices:
                         status = "SUCCESS"
                     elif row_number > 0:
                         status = "NO_NEW_ROWS"
                     else:
                         status = "EMPTY_FILE"
-                    print(
-                        f"  → Filas leídas: {row_number}, insertadas en RAW: {len(file_inserted_prices)}"
-                    )
+
+                    print(f"  → Filas leídas: {row_number}, insertadas en RAW: {len(file_inserted_prices)}")
                     record_load_log(
                         cur,
                         layer="raw",
@@ -361,8 +405,10 @@ def run_load_raw(
                         prices=file_inserted_prices,
                         chunk_size=chunk_size,
                         status=status,
+                        details="file_summary",
                     )
                     conn.commit()
+
     total_sum = sum(all_inserted_prices, ZERO)
     min_price = min(all_inserted_prices) if all_inserted_prices else None
     max_price = max(all_inserted_prices) if all_inserted_prices else None
@@ -378,6 +424,7 @@ def run_raw_to_silver(dsn: str, *, chunk_size: int) -> MetricSummary:
 
     with get_connection(dsn) as conn:
         with conn.cursor() as cur:
+            batch_no = 0  # NEW
             while True:
                 cur.execute(
                     """
@@ -395,6 +442,7 @@ def run_raw_to_silver(dsn: str, *, chunk_size: int) -> MetricSummary:
                     break
 
                 payload: List[tuple] = []
+                prices_this_batch: List[Decimal] = []  # NEW
                 for raw_id, source_file, ts_raw, price_raw, user_raw in rows:
                     event_date, date_coerced = coerce_date(ts_raw)
                     price, price_coerced = coerce_price(price_raw)
@@ -402,30 +450,35 @@ def run_raw_to_silver(dsn: str, *, chunk_size: int) -> MetricSummary:
                     dq_status = "COERCED" if (date_coerced or price_coerced or user_coerced) else "OK"
                     if dq_status == "COERCED":
                         coerced_rows += 1
-                    payload.append(
-                        (
-                            raw_id,
-                            event_date,
-                            price,
-                            user_id,
-                            dq_status,
-                            source_file,
-                        )
-                    )
+                    payload.append((raw_id, event_date, price, user_id, dq_status, source_file))
                     inserted_prices.append(price)
+                    prices_this_batch.append(price)       # NEW
                     processed_rows += 1
+
                 execute_values(
                     cur,
                     """
-                    INSERT INTO silver.events (
-                        raw_id, event_date, price, user_id, dq_status, source_file
-                    )
+                    INSERT INTO silver.events (raw_id, event_date, price, user_id, dq_status, source_file)
                     VALUES %s
                     ON CONFLICT (raw_id) DO NOTHING
                     """,
                     payload,
                 )
-                conn.commit()
+                batch_no += 1  # NEW
+                record_load_log(
+                    cur,
+                    layer="silver",
+                    file_name="raw.events_raw",
+                    records=len(rows),
+                    prices=prices_this_batch,              # NEW
+                    chunk_size=chunk_size,
+                    status="BATCH",
+                    details=f"batch={batch_no}"
+                )
+                print(f"[SILVER] batch#{batch_no} inserted={len(rows)}")
+                conn.commit()  # NEW
+
+            # Resumen de toda la fase
             record_load_log(
                 cur,
                 layer="silver",
@@ -434,17 +487,10 @@ def run_raw_to_silver(dsn: str, *, chunk_size: int) -> MetricSummary:
                 prices=inserted_prices,
                 chunk_size=chunk_size,
                 status="SUCCESS" if processed_rows else "NO_NEW_ROWS",
-                details=f"Filas con coerción: {coerced_rows}",
+                details=f"file_summary;coerced={coerced_rows}"
             )
         conn.commit()
-
-    total_sum = sum(inserted_prices, ZERO)
-    min_price = min(inserted_prices) if inserted_prices else None
-    max_price = max(inserted_prices) if inserted_prices else None
-    summary = MetricSummary(processed_rows, total_sum, min_price, max_price)
-    print_metrics("[SILVER] Resumen", summary)
-    print(f"[SILVER] Filas con coerción: {coerced_rows}")
-    return summary
+    ...
 
 
 def fetch_global_stats(cur) -> MetricSummary:
@@ -475,15 +521,13 @@ def run_silver_to_gold(dsn: str, *, chunk_size: int) -> MetricSummary:
         with conn.cursor() as cur:
             ensure_global_stats_row(cur)
             before = fetch_global_stats(cur)
-            last_processed_id = 0
+            batch_no = 0  # NEW
             while True:
                 cur.execute(
                     """
                     SELECT raw_id, price
                     FROM silver.events
-                    WHERE raw_id > (
-                        SELECT last_silver_id FROM gold.global_stats WHERE id = 1
-                    )
+                    WHERE raw_id > (SELECT last_silver_id FROM gold.global_stats WHERE id = 1)
                     ORDER BY raw_id
                     LIMIT %s
                     """,
@@ -492,47 +536,47 @@ def run_silver_to_gold(dsn: str, *, chunk_size: int) -> MetricSummary:
                 rows = cur.fetchall()
                 if not rows:
                     break
+
                 raw_ids = [row[0] for row in rows]
-                prices = [row[1] for row in rows]
+                prices  = [row[1] for row in rows]
                 batch_count = len(rows)
-                batch_sum = sum(prices, ZERO)
-                batch_min = min(prices)
-                batch_max = max(prices)
+                batch_sum   = sum(prices, ZERO)
+                batch_min   = min(prices)
+                batch_max   = max(prices)
+
                 processed += batch_count
                 aggregated_prices.extend(prices)
                 last_processed_id = raw_ids[-1]
+
                 cur.execute(
                     """
                     UPDATE gold.global_stats
                     SET total_count = total_count + %s,
-                        total_sum = total_sum + %s,
-                        min_price = CASE
-                            WHEN min_price IS NULL THEN %s
-                            WHEN %s IS NULL THEN min_price
-                            ELSE LEAST(min_price, %s)
-                        END,
-                        max_price = CASE
-                            WHEN max_price IS NULL THEN %s
-                            WHEN %s IS NULL THEN max_price
-                            ELSE GREATEST(max_price, %s)
-                        END,
+                        total_sum   = total_sum + %s,
+                        min_price   = CASE WHEN min_price IS NULL THEN %s ELSE LEAST(min_price, %s) END,
+                        max_price   = CASE WHEN max_price IS NULL THEN %s ELSE GREATEST(max_price, %s) END,
                         last_silver_id = %s,
-                        updated_at = NOW()
+                        updated_at  = NOW()
                     WHERE id = 1
                     """,
-                    (
-                        batch_count,
-                        batch_sum,
-                        batch_min,
-                        batch_min,
-                        batch_min,
-                        batch_max,
-                        batch_max,
-                        batch_max,
-                        last_processed_id,
-                    ),
+                    (batch_count, batch_sum, batch_min, batch_min, batch_max, batch_max, last_processed_id),
                 )
-                conn.commit()
+
+                batch_no += 1  # NEW
+                record_load_log(
+                    cur,
+                    layer="gold",
+                    file_name="silver.events",
+                    records=batch_count,
+                    prices=prices,                # NEW
+                    chunk_size=chunk_size,
+                    status="BATCH",
+                    details=f"batch={batch_no}"
+                )
+                print(f"[GOLD] batch#{batch_no} aggregated={batch_count}")
+                conn.commit()  # NEW
+
+            # Resumen final de la fase
             after = fetch_global_stats(cur)
             record_load_log(
                 cur,
@@ -542,32 +586,10 @@ def run_silver_to_gold(dsn: str, *, chunk_size: int) -> MetricSummary:
                 prices=aggregated_prices,
                 chunk_size=chunk_size,
                 status="SUCCESS" if processed else "NO_NEW_ROWS",
-                details=None,
+                details="phase_summary"
             )
         conn.commit()
-
-    summary = after
-    print_metrics("[GOLD] Resumen", summary)
-    if processed:
-        delta_count = summary.count - before.count
-        delta_min = None
-        delta_max = None
-        if summary.min_price is not None and before.min_price is not None:
-            delta_min = summary.min_price - before.min_price
-        elif summary.min_price is not None:
-            delta_min = summary.min_price
-        if summary.max_price is not None and before.max_price is not None:
-            delta_max = summary.max_price - before.max_price
-        elif summary.max_price is not None:
-            delta_max = summary.max_price
-        print("[GOLD] Variación respecto al estado anterior:")
-        print(f"  Δcount: {delta_count}")
-        print(f"  Δavg: {format_decimal(summary.average() - before.average())}")
-        print(f"  Δmin: {format_decimal(delta_min)}")
-        print(f"  Δmax: {format_decimal(delta_max)}")
-    else:
-        print("[GOLD] Sin cambios: no se encontraron filas nuevas en SILVER.")
-    return summary
+    ...
 
 
 def run_check(dsn: str) -> None:

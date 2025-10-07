@@ -18,20 +18,115 @@ code { background:#f3f3f3; padding:2px 6px; border-radius:4px; }
 </head>
 <body>
 <h1>Reporte de Cargas por Lote y Validación</h1>
-<p class="small">Generado: 2025-10-07T16:32:56</p>
+<p class="small">Generado: 2025-10-07T17:09:49</p>
 
 <div class="section"><h2>Cargas por lote (gold.load_log)</h2>
 <table>
 <tr><th>Capa</th><th>Archivo</th><th>Lote</th><th>Registros</th><th>Min</th><th>Avg</th><th>Max</th><th>Chunk</th><th>Estado</th><th>Detalles</th></tr>
-<tr><td>raw</td><td>2012-1.csv</td><td>1</td><td>22</td><td>0.00</td><td>54.23</td><td>97.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
-<tr><td>raw</td><td>2012-2.csv</td><td>1</td><td>29</td><td>10.00</td><td>54.83</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
-<tr><td>raw</td><td>2012-3.csv</td><td>1</td><td>31</td><td>12.00</td><td>59.68</td><td>99.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
-<tr><td>raw</td><td>2012-4.csv</td><td>1</td><td>30</td><td>0.00</td><td>53.57</td><td>97.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
-<tr><td>raw</td><td>2012-5.csv</td><td>1</td><td>31</td><td>13.00</td><td>58.26</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
-<tr><td>silver</td><td>raw.events_raw</td><td>1</td><td>143</td><td>0.00</td><td>56.27</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>Filas con coerción: 143</td></tr>
-<tr><td>raw</td><td>validation.csv</td><td>1</td><td>8</td><td>11.00</td><td>41.75</td><td>92.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
-<tr><td>silver</td><td>raw.events_raw</td><td>2</td><td>8</td><td>11.00</td><td>41.75</td><td>92.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>Filas con coerción: 8</td></tr>
-<tr><td>gold</td><td>silver.events</td><td>1</td><td>151</td><td>0.00</td><td>55.50</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td></td></tr>
+<tr><td>raw</td><td>2012-1.csv</td><td>1</td><td>5</td><td>14.00</td><td>47.00</td><td>87.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=1</td></tr>
+<tr><td>raw</td><td>2012-1.csv</td><td>2</td><td>5</td><td>46.00</td><td>79.00</td><td>97.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=2</td></tr>
+<tr><td>raw</td><td>2012-1.csv</td><td>3</td><td>5</td><td>0.00</td><td>37.40</td><td>74.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=3</td></tr>
+<tr><td>raw</td><td>2012-1.csv</td><td>4</td><td>5</td><td>27.00</td><td>57.60</td><td>96.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=4</td></tr>
+<tr><td>raw</td><td>2012-1.csv</td><td>5</td><td>2</td><td>0.00</td><td>44.00</td><td>88.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=5</td></tr>
+<tr><td>raw</td><td>2012-1.csv</td><td>6</td><td>22</td><td>0.00</td><td>54.23</td><td>97.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>file_summary</td></tr>
+<tr><td>raw</td><td>2012-2.csv</td><td>1</td><td>5</td><td>19.00</td><td>61.60</td><td>100.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=1</td></tr>
+<tr><td>raw</td><td>2012-2.csv</td><td>2</td><td>5</td><td>19.00</td><td>62.00</td><td>100.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=2</td></tr>
+<tr><td>raw</td><td>2012-2.csv</td><td>3</td><td>5</td><td>12.00</td><td>61.40</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=3</td></tr>
+<tr><td>raw</td><td>2012-2.csv</td><td>4</td><td>5</td><td>10.00</td><td>23.20</td><td>37.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=4</td></tr>
+<tr><td>raw</td><td>2012-2.csv</td><td>5</td><td>5</td><td>36.00</td><td>68.80</td><td>87.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=5</td></tr>
+<tr><td>raw</td><td>2012-2.csv</td><td>6</td><td>4</td><td>17.00</td><td>51.25</td><td>68.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=6</td></tr>
+<tr><td>raw</td><td>2012-2.csv</td><td>7</td><td>29</td><td>10.00</td><td>54.83</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>file_summary</td></tr>
+<tr><td>raw</td><td>2012-3.csv</td><td>1</td><td>5</td><td>12.00</td><td>50.40</td><td>75.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=1</td></tr>
+<tr><td>raw</td><td>2012-3.csv</td><td>2</td><td>5</td><td>19.00</td><td>59.00</td><td>99.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=2</td></tr>
+<tr><td>raw</td><td>2012-3.csv</td><td>3</td><td>5</td><td>32.00</td><td>62.80</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=3</td></tr>
+<tr><td>raw</td><td>2012-3.csv</td><td>4</td><td>5</td><td>13.00</td><td>69.40</td><td>89.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=4</td></tr>
+<tr><td>raw</td><td>2012-3.csv</td><td>5</td><td>5</td><td>18.00</td><td>56.40</td><td>96.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=5</td></tr>
+<tr><td>raw</td><td>2012-3.csv</td><td>6</td><td>5</td><td>33.00</td><td>59.00</td><td>83.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=6</td></tr>
+<tr><td>raw</td><td>2012-3.csv</td><td>7</td><td>1</td><td>65.00</td><td>65.00</td><td>65.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=7</td></tr>
+<tr><td>raw</td><td>2012-3.csv</td><td>8</td><td>31</td><td>12.00</td><td>59.68</td><td>99.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>file_summary</td></tr>
+<tr><td>raw</td><td>2012-4.csv</td><td>1</td><td>5</td><td>23.00</td><td>65.00</td><td>91.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=1</td></tr>
+<tr><td>raw</td><td>2012-4.csv</td><td>2</td><td>5</td><td>12.00</td><td>43.00</td><td>68.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=2</td></tr>
+<tr><td>raw</td><td>2012-4.csv</td><td>3</td><td>5</td><td>50.00</td><td>72.20</td><td>97.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=3</td></tr>
+<tr><td>raw</td><td>2012-4.csv</td><td>4</td><td>5</td><td>0.00</td><td>40.00</td><td>90.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=4</td></tr>
+<tr><td>raw</td><td>2012-4.csv</td><td>5</td><td>5</td><td>19.00</td><td>57.80</td><td>82.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=5</td></tr>
+<tr><td>raw</td><td>2012-4.csv</td><td>6</td><td>5</td><td>0.00</td><td>43.40</td><td>76.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=6</td></tr>
+<tr><td>raw</td><td>2012-4.csv</td><td>7</td><td>30</td><td>0.00</td><td>53.57</td><td>97.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>file_summary</td></tr>
+<tr><td>raw</td><td>2012-5.csv</td><td>1</td><td>5</td><td>17.00</td><td>54.60</td><td>94.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=1</td></tr>
+<tr><td>raw</td><td>2012-5.csv</td><td>2</td><td>5</td><td>13.00</td><td>44.80</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=2</td></tr>
+<tr><td>raw</td><td>2012-5.csv</td><td>3</td><td>5</td><td>16.00</td><td>50.00</td><td>91.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=3</td></tr>
+<tr><td>raw</td><td>2012-5.csv</td><td>4</td><td>5</td><td>30.00</td><td>64.60</td><td>84.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=4</td></tr>
+<tr><td>raw</td><td>2012-5.csv</td><td>5</td><td>5</td><td>34.00</td><td>77.60</td><td>100.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=5</td></tr>
+<tr><td>raw</td><td>2012-5.csv</td><td>6</td><td>5</td><td>39.00</td><td>63.00</td><td>91.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=6</td></tr>
+<tr><td>raw</td><td>2012-5.csv</td><td>7</td><td>1</td><td>33.00</td><td>33.00</td><td>33.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=7</td></tr>
+<tr><td>raw</td><td>2012-5.csv</td><td>8</td><td>31</td><td>13.00</td><td>58.26</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>file_summary</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>1</td><td>5</td><td>14.00</td><td>47.00</td><td>87.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=1</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>2</td><td>5</td><td>46.00</td><td>79.00</td><td>97.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=2</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>3</td><td>5</td><td>0.00</td><td>37.40</td><td>74.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=3</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>4</td><td>5</td><td>27.00</td><td>57.60</td><td>96.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=4</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>5</td><td>5</td><td>0.00</td><td>55.40</td><td>88.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=5</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>6</td><td>5</td><td>19.00</td><td>71.00</td><td>100.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=6</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>7</td><td>5</td><td>19.00</td><td>54.80</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=7</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>8</td><td>5</td><td>10.00</td><td>36.40</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=8</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>9</td><td>5</td><td>14.00</td><td>47.80</td><td>87.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=9</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>10</td><td>5</td><td>17.00</td><td>56.60</td><td>84.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=10</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>11</td><td>5</td><td>12.00</td><td>59.80</td><td>75.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=11</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>12</td><td>5</td><td>21.00</td><td>59.40</td><td>99.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=12</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>13</td><td>5</td><td>19.00</td><td>56.00</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=13</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>14</td><td>5</td><td>13.00</td><td>63.20</td><td>89.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=14</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>15</td><td>5</td><td>18.00</td><td>56.80</td><td>96.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=15</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>16</td><td>5</td><td>33.00</td><td>58.80</td><td>82.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=16</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>17</td><td>5</td><td>23.00</td><td>60.20</td><td>87.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=17</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>18</td><td>5</td><td>13.00</td><td>62.80</td><td>91.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=18</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>19</td><td>5</td><td>12.00</td><td>57.40</td><td>88.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=19</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>20</td><td>5</td><td>0.00</td><td>63.20</td><td>97.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=20</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>21</td><td>5</td><td>10.00</td><td>39.00</td><td>77.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=21</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>22</td><td>5</td><td>0.00</td><td>46.60</td><td>82.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=22</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>23</td><td>5</td><td>19.00</td><td>54.20</td><td>82.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=23</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>24</td><td>5</td><td>13.00</td><td>41.80</td><td>94.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=24</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>25</td><td>5</td><td>16.00</td><td>48.20</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=25</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>26</td><td>5</td><td>44.00</td><td>73.20</td><td>91.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=26</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>27</td><td>5</td><td>30.00</td><td>60.60</td><td>89.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=27</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>28</td><td>5</td><td>61.00</td><td>79.20</td><td>100.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=28</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>29</td><td>3</td><td>33.00</td><td>43.00</td><td>57.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=29</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>30</td><td>143</td><td>0.00</td><td>56.27</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>file_summary;coerced=143</td></tr>
+<tr><td>raw</td><td>validation.csv</td><td>1</td><td>5</td><td>11.00</td><td>34.60</td><td>92.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=1</td></tr>
+<tr><td>raw</td><td>validation.csv</td><td>2</td><td>3</td><td>13.00</td><td>53.67</td><td>86.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=2</td></tr>
+<tr><td>raw</td><td>validation.csv</td><td>3</td><td>8</td><td>11.00</td><td>41.75</td><td>92.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>file_summary</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>31</td><td>5</td><td>11.00</td><td>34.60</td><td>92.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=1</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>32</td><td>3</td><td>13.00</td><td>53.67</td><td>86.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=2</td></tr>
+<tr><td>silver</td><td>raw.events_raw</td><td>33</td><td>8</td><td>11.00</td><td>41.75</td><td>92.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>file_summary;coerced=8</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>1</td><td>5</td><td>14.00</td><td>47.00</td><td>87.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=1</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>2</td><td>5</td><td>46.00</td><td>79.00</td><td>97.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=2</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>3</td><td>5</td><td>0.00</td><td>37.40</td><td>74.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=3</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>4</td><td>5</td><td>27.00</td><td>57.60</td><td>96.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=4</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>5</td><td>5</td><td>0.00</td><td>55.40</td><td>88.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=5</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>6</td><td>5</td><td>19.00</td><td>71.00</td><td>100.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=6</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>7</td><td>5</td><td>19.00</td><td>54.80</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=7</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>8</td><td>5</td><td>10.00</td><td>36.40</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=8</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>9</td><td>5</td><td>14.00</td><td>47.80</td><td>87.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=9</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>10</td><td>5</td><td>17.00</td><td>56.60</td><td>84.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=10</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>11</td><td>5</td><td>12.00</td><td>59.80</td><td>75.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=11</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>12</td><td>5</td><td>21.00</td><td>59.40</td><td>99.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=12</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>13</td><td>5</td><td>19.00</td><td>56.00</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=13</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>14</td><td>5</td><td>13.00</td><td>63.20</td><td>89.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=14</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>15</td><td>5</td><td>18.00</td><td>56.80</td><td>96.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=15</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>16</td><td>5</td><td>33.00</td><td>58.80</td><td>82.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=16</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>17</td><td>5</td><td>23.00</td><td>60.20</td><td>87.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=17</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>18</td><td>5</td><td>13.00</td><td>62.80</td><td>91.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=18</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>19</td><td>5</td><td>12.00</td><td>57.40</td><td>88.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=19</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>20</td><td>5</td><td>0.00</td><td>63.20</td><td>97.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=20</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>21</td><td>5</td><td>10.00</td><td>39.00</td><td>77.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=21</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>22</td><td>5</td><td>0.00</td><td>46.60</td><td>82.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=22</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>23</td><td>5</td><td>19.00</td><td>54.20</td><td>82.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=23</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>24</td><td>5</td><td>13.00</td><td>41.80</td><td>94.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=24</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>25</td><td>5</td><td>16.00</td><td>48.20</td><td>95.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=25</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>26</td><td>5</td><td>44.00</td><td>73.20</td><td>91.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=26</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>27</td><td>5</td><td>30.00</td><td>60.60</td><td>89.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=27</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>28</td><td>5</td><td>61.00</td><td>79.20</td><td>100.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=28</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>29</td><td>5</td><td>11.00</td><td>33.20</td><td>57.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=29</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>30</td><td>5</td><td>13.00</td><td>42.20</td><td>92.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=30</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>31</td><td>1</td><td>86.00</td><td>86.00</td><td>86.00</td><td>5</td><td><span class='badge'>BATCH</span></td><td>batch=31</td></tr>
+<tr><td>gold</td><td>silver.events</td><td>32</td><td>151</td><td>0.00</td><td>55.50</td><td>100.00</td><td>5</td><td><span class='badge'>SUCCESS</span></td><td>phase_summary</td></tr>
 </table></div>
 <div class="section"><h2>Validación</h2>
 <p>Comparación de métricas al cargar <code>validation.csv</code>.</p>
